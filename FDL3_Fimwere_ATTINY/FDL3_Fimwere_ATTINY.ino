@@ -9,8 +9,8 @@ const int ledPin = 1; // attiny 1 uno LED_BUILTIN
 // constants:
 const int motorStop = 20;
 const int motorLow = 90;
-const int motorMiddle = 120;
-const int motorHigh = 150; // max 179
+const int motorMiddle = 100;
+const int motorHigh = 110; // max 179
 // variables:
 int wantedMotorSpeed = motorStop;
 int currentMotorSpeed = motorStop;
@@ -122,8 +122,8 @@ To keep a physical interface as simple as possible, this sketch demonstrates gen
 
 // Button timing variables
 int debounce = 20;          // ms debounce period to prevent flickering when pressing or releasing the button
-int DCgap = 250;            // max ms between clicks for a double click event
-int holdTime = 400;        // ms hold period: how long to wait for press+hold event
+int DCgap = 200;            // max ms between clicks for a double click event
+int holdTime = 200;        // ms hold period: how long to wait for press+hold event
 int longHoldTime = 3000;    // ms long hold period: how long to wait for press+hold event
 
 // Button variables
