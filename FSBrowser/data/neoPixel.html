@@ -1,0 +1,171 @@
+<!-- 
+    https://api.jquery.com/jquery.post/
+    https://getbootstrap.com/docs/4.3/getting-started/introduction/
+    
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <title>Hello, world!</title>
+  </head>
+  <body>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    
+<!------ Include the above in your HEAD tag ---------->
+
+<div class="container">
+	<span><b>Pin &nbsp;<span id="PinNumber"></span></b></span>
+    <div class="row clearfix">
+		<div class="col-md-12 column">
+			<table class="table table-bordered table-hover" id="tab_logic">
+				<thead>
+					<tr >
+						<th class="text-center">
+							#
+						</th>
+						<th class="text-center">
+							Function
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+                    <tr id='addr0'></tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	
+	<button type="button" id="addButton" class="btn btn-primary">Add Row</button>
+	<button type="button" id="deleteButton" class="btn btn-secondary">Delete Row</button>
+	<button type="button" id="saveButton" class="btn btn-success">Save</button>
+<br><br><br>
+	<div>Normal response</div>
+    <div id="content"></div>
+    <div>Error response</div>
+	<div id="errorContent"></div>
+</div>
+
+
+<script>
+	var currentRowNumber = 0;
+	var pinNumber = 5;
+	var host = "http://192.168.178.45";
+	$(document).ready(function(){
+		var i=1;
+		$("#addButton").click(function(){
+			addRowToTable("");
+		});
+		$("#deleteButton").click(function(){
+			removeRowFromTable();	
+		});
+		$("#saveButton").click(function(){
+			saveData();	
+		});
+	 readPinData();
+});
+
+readPinData = function(){
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			document.getElementById("content").innerHTML = xhttp.responseText;
+			let pinData = JSON.parse(xhttp.responseText);
+			let functions = [];
+			for(let i in pinData.functions) {
+				if (pinData.functions[i].length > 0) {
+					functions.push(pinData.functions[i]);
+					addRowToTable(pinData.functions[i]);
+				}
+			}
+			$('#PinNumber').html(pinData.pin);
+		}
+	};
+	xhttp.onerror = function () {
+		document.getElementById("errorContent").innerHTML = "Status code is " + this.status + " click F12 and check what is the problem on console";
+	};
+
+	xhttp.open("GET", host+"/api/control?pin="+pinNumber, true);
+	xhttp.send();
+}
+
+addRowToTable = function(rowContent){
+
+	$('#addr'+currentRowNumber).html("<td>"+ (currentRowNumber+1) +"</td><td>"+
+		"<select value='green' name='functions' id='functionName"+currentRowNumber+"'>"+
+		getOption("red", rowContent)+
+		getOption("green", rowContent)+
+		getOption("blue", rowContent)+
+		getOption("cinemaWhite", rowContent)+
+		getOption("cinemaRed", rowContent)+
+		getOption("cinemaBlue", rowContent)+
+		getOption("rainbow", rowContent)+
+		getOption("cinemaRainbow", rowContent)+
+		getOption("off", rowContent)+
+		" </td></td>");
+	$('#tab_logic').append('<tr id="addr'+(currentRowNumber+1)+'"></tr>');
+	currentRowNumber++; 
+}
+
+getOption = function(color, selectedColor){
+	let option = "<option value='"+color+"'"
+	if(color == selectedColor) {
+		option = option + " selected>";
+	} else {
+		option = option + ">";
+	}
+	option = option +color+"</option>";
+	return option;
+}
+
+removeRowFromTable = function(rowContent){
+	if(currentRowNumber>1){
+		$("#addr"+(currentRowNumber-1)).html('');
+		currentRowNumber--;
+	}
+}
+
+saveData = function(){
+	let functions = [];
+	for (let index = 0; index < currentRowNumber; index++) {
+		const functionName = $('#functionName'+index).val();
+		if(functionName.length) {
+			functions.push(functionName);
+		}
+	}
+
+	let body = {
+		functions: functions
+	}
+
+	var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 201) {
+            document.getElementById("content").innerHTML = xhttp.responseText;
+        }
+    };
+    xhttp.onerror = function () {
+        document.getElementById("errorContent").innerHTML = "Status code is " + this.status + " click F12 and check what is the problem on console";
+    };
+ 
+    xhttp.open("PUT", host+"/api/control?pin="+pinNumber, true);
+ 
+    //xhttp.setRequestHeader('Access-Control-Allow-Headers', '*');
+    //xhttp.setRequestHeader('Access-Control-Allow-Origin', '*');
+ 
+    xhttp.setRequestHeader('Content-type', 'application/json')
+    xhttp.send(JSON.stringify(body)) // Make sure to stringify
+}
+
+</script>
+</body>
+</html>
